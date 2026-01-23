@@ -85,6 +85,16 @@ func messageLoop() {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
+	win32.OnEndSession = func(hWnd syscall.Handle) {
+		logrus.Debug("Received WM_ENDSESSION message")
+		receivers.notifyAll()
+		// Windows will terminate the process when we returns from WM_ENDSESSION message handler, block forver by read on a nil channel
+		var nilChan chan struct{}
+		select {
+		case <-nilChan:
+		}
+	}
+
 	loopTid = windows.GetCurrentThreadId()
 	registerDummyWindow()
 

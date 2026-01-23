@@ -36,6 +36,8 @@ var (
 	procDefWinProc        = user32.NewProc("DefWindowProcW")
 
 	callbackEnumThreadWindows = syscall.NewCallback(wndProcCloseWindow)
+
+	OnEndSession func(hWnd syscall.Handle)
 )
 
 func DefWindowProc(hWnd syscall.Handle, msg uint32, wParam uintptr, lParam uintptr) int32 {
@@ -88,6 +90,9 @@ func wndProc(hWnd syscall.Handle, msg uint32, wParam uintptr, lParam uintptr) ui
 	switch msg {
 	case WM_DESTROY:
 		PostQuitMessage(0)
+		return 0
+	case WM_ENDSESSION:
+		OnEndSession(hWnd)
 		return 0
 	default:
 		return uintptr(DefWindowProc(hWnd, msg, wParam, lParam))
