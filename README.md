@@ -16,9 +16,11 @@ the graceful shutdown mechanism employed by Windows system tools, such as
 To aid application portability, and provide familiarity, the API follows a
 similar convention and approach as the os.signal package. Additionally, the
 SimulateSigTermOnQuit function supports reuse of the same underlying channel,
-supporting the blending of os.signal and winquit together (a subset of
-signals provided by os.signal are still relevant and desirable on Windows,
-for example, break handling in console applications).
+supporting the blending of os.signal and winquit together (a subset of signals
+provided by os.signal are still relevant and desirable on Windows, for example,
+break handling in console applications), the SetShutdownHighestPriority function
+supports terminate current process first on Windows logoff, useful for
+guarantees graceful terminate child processes by ourselves.
 
 ### Simple server example
 

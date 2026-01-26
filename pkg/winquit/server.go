@@ -43,3 +43,8 @@ func SimulateSigTermOnQuit(handler chan os.Signal) {
 func GetCurrentMessageLoopThreadId() uint32 {
 	return getCurrentMessageLoopThreadId()
 }
+
+// Set shutdown highest priority.
+func SetShutdownHighestPriority() error {
+	return setShutdownHighestPriority()
+}

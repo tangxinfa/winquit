@@ -30,14 +30,16 @@ const (
 )
 
 var (
-	procEnumThreadWindows = user32.NewProc("EnumThreadWindows")
-	procRegisterClassEx   = user32.NewProc("RegisterClassExW")
-	procCreateWindowEx    = user32.NewProc("CreateWindowExW")
-	procDefWinProc        = user32.NewProc("DefWindowProcW")
+	procEnumThreadWindows            = user32.NewProc("EnumThreadWindows")
+	procRegisterClassEx              = user32.NewProc("RegisterClassExW")
+	procCreateWindowEx               = user32.NewProc("CreateWindowExW")
+	procDefWinProc                   = user32.NewProc("DefWindowProcW")
+	procSetProcessShutdownParameters = kernel32.NewProc("SetProcessShutdownParameters")
 
 	callbackEnumThreadWindows = syscall.NewCallback(wndProcCloseWindow)
 
-	OnEndSession func(hWnd syscall.Handle)
+	OnEndSession      func(hWnd syscall.Handle)
+	OnQueryEndSession func(hWnd syscall.Handle) bool
 )
 
 func DefWindowProc(hWnd syscall.Handle, msg uint32, wParam uintptr, lParam uintptr) int32 {
@@ -91,12 +93,18 @@ func wndProc(hWnd syscall.Handle, msg uint32, wParam uintptr, lParam uintptr) ui
 	case WM_DESTROY:
 		PostQuitMessage(0)
 		return 0
+	case WM_QUERYENDSESSION:
+		if OnQueryEndSession != nil {
+			if OnQueryEndSession(hWnd) {
+				return uintptr(1)
+			}
+			return uintptr(0)
+		}
 	case WM_ENDSESSION:
 		OnEndSession(hWnd)
 		return 0
-	default:
-		return uintptr(DefWindowProc(hWnd, msg, wParam, lParam))
 	}
+	return uintptr(DefWindowProc(hWnd, msg, wParam, lParam))
 }
 
 func CloseThreadWindows(threadId uint32) {
@@ -164,4 +172,12 @@ func CreateDummyWindow(name string, className string, appInstance syscall.Handle
 	}
 
 	return syscall.Handle(ret), nil
+}
+
+func SetProcessShutdownParameters(level int, flags int) error {
+	ret, _, err := procSetProcessShutdownParameters.Call(uintptr(level), uintptr(flags))
+	if ret == 0 {
+		return fmt.Errorf("SetProcessShutdownParameters failed: %w", err)
+	}
+	return nil
 }

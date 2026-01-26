@@ -25,8 +25,9 @@ var (
 		channels: make(map[any]baseChannelType),
 	}
 
-	loopInit sync.Once
-	loopTid  uint32
+	loopInit                sync.Once
+	loopTid                 uint32
+	shutdownHighestPriority bool
 )
 
 func (r *receiversType) add(channel baseChannelType) {
@@ -85,9 +86,27 @@ func messageLoop() {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
+	if shutdownHighestPriority {
+		const (
+			highestPriority = 0x3ff
+			shutdownNoretry = 0x1
+		)
+		if err := win32.SetProcessShutdownParameters(highestPriority, shutdownNoretry); err != nil {
+			logrus.Errorf("SetShutdownHighestPriority failed: %s", err.Error())
+		}
+		win32.OnQueryEndSession = func(hWnd syscall.Handle) bool {
+			logrus.Debug("Received WM_QUERYENDSESSION message")
+			receivers.notifyAll()
+			return false // Returns false to defer shutdown
+		}
+	}
+
 	win32.OnEndSession = func(hWnd syscall.Handle) {
 		logrus.Debug("Received WM_ENDSESSION message")
-		receivers.notifyAll()
+		// Notify once, already notified in WM_QUERYENDSESSION message handler when shutdown highest priority turned on.
+		if !shutdownHighestPriority {
+			receivers.notifyAll()
+		}
 		// Windows will terminate the process when we returns from WM_ENDSESSION message handler, block forver by read on a nil channel
 		var nilChan chan struct{}
 		select {
@@ -154,4 +173,8 @@ func registerDummyWindow() error {
 	}
 
 	return nil
+}
+
+func setShutdownHighestPriority() {
+	shutdownHighestPriority = true
 }

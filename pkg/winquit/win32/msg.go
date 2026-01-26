@@ -18,10 +18,11 @@ type MSG struct {
 }
 
 const (
-	WM_QUIT       = 0x12
-	WM_DESTROY    = 0x02
-	WM_CLOSE      = 0x10
-	WM_ENDSESSION = 0x16
+	WM_QUIT            = 0x12
+	WM_DESTROY         = 0x02
+	WM_CLOSE           = 0x10
+	WM_QUERYENDSESSION = 0x11
+	WM_ENDSESSION      = 0x16
 )
 
 var (
