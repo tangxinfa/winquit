@@ -45,6 +45,6 @@ func GetCurrentMessageLoopThreadId() uint32 {
 }
 
 // Set shutdown highest priority.
-func SetShutdownHighestPriority() error {
-	return setShutdownHighestPriority()
+func SetShutdownHighestPriority() {
+	setShutdownHighestPriority()
 }
