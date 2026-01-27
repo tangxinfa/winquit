@@ -1,6 +1,7 @@
 package winquit
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -14,9 +15,15 @@ func requestQuit(pid int) error {
 		return err
 	}
 
+	closed := false
 	for _, thread := range threads {
-		logrus.Debugf("Closing windows on thread %d", thread)
-		win32.CloseThreadWindows(uint32(thread))
+		logrus.Debugf("Closing windows on process %v thread %d", pid, thread)
+		if win32.CloseThreadWindows(uint32(thread)) {
+			closed = true
+		}
+	}
+	if !closed {
+		return fmt.Errorf("Process %v no windows closed", pid)
 	}
 
 	return nil
