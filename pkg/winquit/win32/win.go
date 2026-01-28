@@ -108,18 +108,20 @@ func wndProc(hWnd syscall.Handle, msg uint32, wParam uintptr, lParam uintptr) ui
 }
 
 func CloseThreadWindows(threadId uint32) bool {
+	var hasWindow bool
 	ret, _, _ :=
 		procEnumThreadWindows.Call( // // BOOL EnumThreadWindows()
-			uintptr(threadId),         //      [in] DWORD       dwThreadId,
-			callbackEnumThreadWindows, //      [in] WNDENUMPROC lpfn,
-			0,                         //      [in] LPARAM      lParam
+			uintptr(threadId),                   //      [in] DWORD       dwThreadId,
+			callbackEnumThreadWindows,           //      [in] WNDENUMPROC lpfn,
+			uintptr(unsafe.Pointer(&hasWindow)), //      [in] LPARAM      lParam
 		)
-	return ret != 0
+	return ret != 0 && hasWindow
 }
 
 func wndProcCloseWindow(hwnd uintptr, lparam uintptr) uintptr {
 	SendMessage(syscall.Handle(hwnd), WM_CLOSE, 0, 0)
-
+	hasWindow := (*bool)(unsafe.Pointer(lparam))
+	*hasWindow = true
 	return 1
 }
 
