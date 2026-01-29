@@ -28,6 +28,7 @@ var (
 	loopInit                sync.Once
 	loopTid                 uint32
 	shutdownHighestPriority bool
+	shutdownBlockReason     string
 )
 
 func (r *receiversType) add(channel baseChannelType) {
@@ -97,6 +98,9 @@ func messageLoop() {
 		win32.OnQueryEndSession = func(hWnd syscall.Handle) bool {
 			logrus.Debug("Received WM_QUERYENDSESSION message")
 			receivers.notifyAll()
+			if shutdownBlockReason != "" {
+				win32.ShutdownBlockReasonCreate(hWnd, shutdownBlockReason)
+			}
 			return false // Returns false to defer shutdown
 		}
 	}
@@ -175,6 +179,7 @@ func registerDummyWindow() error {
 	return nil
 }
 
-func setShutdownHighestPriority() {
+func setShutdownHighestPriority(blockShutdownReason string) {
 	shutdownHighestPriority = true
+	blockShutdownReason = blockShutdownReason
 }

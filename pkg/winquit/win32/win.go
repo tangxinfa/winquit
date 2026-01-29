@@ -35,6 +35,7 @@ var (
 	procCreateWindowEx               = user32.NewProc("CreateWindowExW")
 	procDefWinProc                   = user32.NewProc("DefWindowProcW")
 	procSetProcessShutdownParameters = kernel32.NewProc("SetProcessShutdownParameters")
+	procShutdownBlockReasonCreate    = user32.NewProc("ShutdownBlockReasonCreate")
 
 	callbackEnumThreadWindows = syscall.NewCallback(wndProcCloseWindow)
 
@@ -181,6 +182,21 @@ func SetProcessShutdownParameters(level int, flags int) error {
 	ret, _, err := procSetProcessShutdownParameters.Call(uintptr(level), uintptr(flags))
 	if ret == 0 {
 		return fmt.Errorf("SetProcessShutdownParameters failed: %w", err)
+	}
+	return nil
+}
+
+func ShutdownBlockReasonCreate(hWnd syscall.Handle, reason string) error {
+	reasonPtr, err := syscall.UTF16PtrFromString(reason)
+	if err != nil {
+		return err
+	}
+	ret, _, err := procShutdownBlockReasonCreate.Call(
+		uintptr(hWnd),
+		uintptr(unsafe.Pointer(reasonPtr)),
+	)
+	if ret == 0 {
+		return fmt.Errorf("ShutdownBlockReasonCreate failed: %w", err)
 	}
 	return nil
 }

@@ -44,7 +44,12 @@ func GetCurrentMessageLoopThreadId() uint32 {
 	return getCurrentMessageLoopThreadId()
 }
 
-// Set shutdown highest priority.
-func SetShutdownHighestPriority() {
-	setShutdownHighestPriority()
+// SetShutdownHighestPriority set shutdown highest priority and block system
+// shutdown reason.
+//
+// This function allows current process take precedence to handle session ending
+// notification from Windows, and has a chance to notify child
+// processes quit gracefully.
+func SetShutdownHighestPriority(blockShutdownReason string) {
+	setShutdownHighestPriority(blockShutdownReason)
 }
