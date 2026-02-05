@@ -5,8 +5,11 @@ package win32
 
 import (
 	"fmt"
+	"sync"
 	"syscall"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
 type WNDCLASSEX struct {
@@ -41,6 +44,9 @@ var (
 
 	OnEndSession      func(hWnd syscall.Handle)
 	OnQueryEndSession func(hWnd syscall.Handle) bool
+
+	enableAutoKillDescendantsOnce sync.Once
+	enableAutoKillDescendantsErr  error
 )
 
 func DefWindowProc(hWnd syscall.Handle, msg uint32, wParam uintptr, lParam uintptr) int32 {
@@ -199,4 +205,46 @@ func ShutdownBlockReasonCreate(hWnd syscall.Handle, reason string) error {
 		return fmt.Errorf("ShutdownBlockReasonCreate failed: %w", err)
 	}
 	return nil
+}
+
+// EnableAutoKillDescendants enable automatically kill descendants after process terminated.
+//
+// Useful for guarantees program restart properly, as handles inherit by orphan
+// descendants will cause resource competition. The job object handle was
+// intentionally not closed, it will closed by the OS when current process
+// terminated. Current process will associate with the job object, and
+// descendant processes will inherit this job associate, and its life cycle
+// determined by the job object too.
+func EnableAutoKillDescendants() error {
+	enableAutoKillDescendantsOnce.Do(func() {
+		var jobHandle windows.Handle
+		jobHandle, enableAutoKillDescendantsErr = windows.CreateJobObject(nil, nil)
+		if enableAutoKillDescendantsErr != nil {
+			enableAutoKillDescendantsErr = fmt.Errorf("CreateJobObject failed: %w", enableAutoKillDescendantsErr)
+			return
+		}
+		info := windows.JOBOBJECT_EXTENDED_LIMIT_INFORMATION{
+			BasicLimitInformation: windows.JOBOBJECT_BASIC_LIMIT_INFORMATION{
+				LimitFlags: windows.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE,
+			},
+		}
+		_, enableAutoKillDescendantsErr = windows.SetInformationJobObject(
+			jobHandle,
+			windows.JobObjectExtendedLimitInformation,
+			(uintptr)(unsafe.Pointer(&info)),
+			uint32(unsafe.Sizeof(info)),
+		)
+		if enableAutoKillDescendantsErr != nil {
+			windows.CloseHandle(jobHandle)
+			enableAutoKillDescendantsErr = fmt.Errorf("SetInformationJobObject failed: %w", enableAutoKillDescendantsErr)
+			return
+		}
+		enableAutoKillDescendantsErr = windows.AssignProcessToJobObject(jobHandle, windows.CurrentProcess())
+		if enableAutoKillDescendantsErr != nil {
+			windows.CloseHandle(jobHandle)
+			enableAutoKillDescendantsErr = fmt.Errorf("AssignProcessToJobObject failed: %w", enableAutoKillDescendantsErr)
+			return
+		}
+	})
+	return enableAutoKillDescendantsErr
 }

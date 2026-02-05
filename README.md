@@ -20,7 +20,10 @@ supporting the blending of os.signal and winquit together (a subset of signals
 provided by os.signal are still relevant and desirable on Windows, for example,
 break handling in console applications), the SetShutdownHighestPriority function
 supports terminate current process first on Windows logoff, useful for
-guarantees graceful terminate child processes by ourselves.
+guarantees graceful terminate child processes by ourselves, the
+EnableAutoKillDescendants enable automatically kill descendants after process
+terminated, useful for guarantees program restart properly, as handles inherit
+by orphan descendants will cause resource competition.
 
 ### Simple server example
 

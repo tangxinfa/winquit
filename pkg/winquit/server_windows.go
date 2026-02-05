@@ -183,3 +183,7 @@ func setShutdownHighestPriority(blockShutdownReason string) {
 	shutdownHighestPriority = true
 	blockShutdownReason = blockShutdownReason
 }
+
+func enableAutoKillDescendants() error {
+	return win32.EnableAutoKillDescendants()
+}

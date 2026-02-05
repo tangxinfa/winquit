@@ -53,3 +53,9 @@ func GetCurrentMessageLoopThreadId() uint32 {
 func SetShutdownHighestPriority(blockShutdownReason string) {
 	setShutdownHighestPriority(blockShutdownReason)
 }
+
+// EnableAutoKillDescendants enable automatically kill descendants after process
+// terminated.
+func EnableAutoKillDescendants() error {
+	return enableAutoKillDescendants()
+}
