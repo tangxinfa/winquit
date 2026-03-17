@@ -92,7 +92,9 @@ func messageLoop() {
 			highestPriority = 0x3ff
 			shutdownNoretry = 0x1
 		)
-		if err := win32.SetProcessShutdownParameters(highestPriority, shutdownNoretry); err != nil {
+		shutdownLevel := highestPriority
+		shutdownFlags := 0x0
+		if err := win32.SetProcessShutdownParameters(shutdownLevel, shutdownFlags); err != nil {
 			logrus.Errorf("SetShutdownHighestPriority failed: %s", err.Error())
 		}
 		win32.OnQueryEndSession = func(hWnd syscall.Handle) bool {
