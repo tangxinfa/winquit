@@ -23,7 +23,9 @@ supports terminate current process first on Windows logoff, useful for
 guarantees graceful terminate child processes by ourselves, the
 EnableAutoKillDescendants enable automatically kill descendants after process
 terminated, useful for guarantees program restart properly, as handles inherit
-by orphan descendants will cause resource competition.
+by orphan descendants will cause resource competition, the
+SetWindowCreatedHandler and OnWindowMessage mainly for help the user register
+and handle extra windows notifications.
 
 ### Simple server example
 
