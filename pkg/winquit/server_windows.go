@@ -29,7 +29,7 @@ var (
 	loopTid                 uint32
 	shutdownHighestPriority bool
 	shutdownBlockReason     string
-	windowCreatedHandler    func(hWnd syscall.Handle)
+	windowCreatedHandlers   []func(hWnd syscall.Handle)
 )
 
 func (r *receiversType) add(channel baseChannelType) {
@@ -179,8 +179,8 @@ func registerDummyWindow() error {
 		return err
 	}
 
-	if windowCreatedHandler != nil {
-		windowCreatedHandler(hWnd)
+	for _, handler := range windowCreatedHandlers {
+		handler(hWnd)
 	}
 
 	return nil
@@ -196,9 +196,9 @@ func enableAutoKillDescendants() error {
 }
 
 func setWindowCreatedHandler(handler func(hWnd syscall.Handle)) {
-	windowCreatedHandler = handler
+	windowCreatedHandlers = append(windowCreatedHandlers, handler)
 }
 
 func onWindowMessage(handler func(hWnd syscall.Handle, msg uint32, wParam uintptr, lParam uintptr, handled *bool) uintptr) {
-	win32.OnMessage = handler
+	win32.OnMessage = append(win32.OnMessage, handler)
 }

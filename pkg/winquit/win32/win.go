@@ -44,7 +44,7 @@ var (
 
 	OnEndSession      func(hWnd syscall.Handle)
 	OnQueryEndSession func(hWnd syscall.Handle) bool
-	OnMessage         func(hWnd syscall.Handle, msg uint32, wParam uintptr, lParam uintptr, handled *bool) uintptr
+	OnMessage         []func(hWnd syscall.Handle, msg uint32, wParam uintptr, lParam uintptr, handled *bool) uintptr
 
 	enableAutoKillDescendantsOnce sync.Once
 	enableAutoKillDescendantsErr  error
@@ -97,9 +97,9 @@ func RegisterClassEx(class *WNDCLASSEX) (uint16, error) {
 }
 
 func wndProc(hWnd syscall.Handle, msg uint32, wParam uintptr, lParam uintptr) uintptr {
-	if OnMessage != nil {
+	for _, handler := range OnMessage {
 		var handled bool
-		if result := OnMessage(hWnd, msg, wParam, lParam, &handled); handled {
+		if result := handler(hWnd, msg, wParam, lParam, &handled); handled {
 			return result
 		}
 	}

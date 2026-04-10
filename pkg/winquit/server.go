@@ -68,7 +68,7 @@ func SetWindowCreatedHandler(handler func(hWnd syscall.Handle)) {
 
 // OnWindowMessage handle window message.
 //
-// The handler can set *handled to true to avoid winquit handling it.
+// The handler can set *handled to true to avoid winquit or other handlers to handling it.
 func OnWindowMessage(handler func(hWnd syscall.Handle, msg uint32, wParam uintptr, lParam uintptr, handled *bool) uintptr) {
 	onWindowMessage(handler)
 }
