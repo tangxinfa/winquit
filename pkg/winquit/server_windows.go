@@ -186,19 +186,31 @@ func registerDummyWindow() error {
 	return nil
 }
 
-func setShutdownHighestPriority(blockShutdownReason string) {
+// SetShutdownHighestPriority set shutdown highest priority and block system
+// shutdown reason.
+//
+// This function allows current process take precedence to handle session ending
+// notification from Windows, and has a chance to notify child
+// processes quit gracefully.
+func SetShutdownHighestPriority(blockShutdownReason string) {
 	shutdownHighestPriority = true
 	blockShutdownReason = blockShutdownReason
 }
 
-func enableAutoKillDescendants() error {
+// EnableAutoKillDescendants enable automatically kill descendants after process
+// terminated.
+func EnableAutoKillDescendants() error {
 	return win32.EnableAutoKillDescendants()
 }
 
-func setWindowCreatedHandler(handler func(hWnd syscall.Handle)) {
+// SetWindowCreatedHandler set a handler called when the underlying window created.
+func SetWindowCreatedHandler(handler func(hWnd syscall.Handle)) {
 	windowCreatedHandlers = append(windowCreatedHandlers, handler)
 }
 
-func onWindowMessage(handler func(hWnd syscall.Handle, msg uint32, wParam uintptr, lParam uintptr, handled *bool) uintptr) {
+// OnWindowMessage handle window message.
+//
+// The handler can set *handled to true to avoid winquit or other handlers to handling it.
+func OnWindowMessage(handler func(hWnd syscall.Handle, msg uint32, wParam uintptr, lParam uintptr, handled *bool) uintptr) {
 	win32.OnMessage = append(win32.OnMessage, handler)
 }

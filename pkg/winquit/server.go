@@ -2,7 +2,6 @@ package winquit
 
 import (
 	"os"
-	"syscall"
 )
 
 // NotifyOnQuit relays a Windows quit notification to the boolean done channel.
@@ -43,32 +42,4 @@ func SimulateSigTermOnQuit(handler chan os.Signal) {
 // patterns that serialize the thread id for later direct signaling.
 func GetCurrentMessageLoopThreadId() uint32 {
 	return getCurrentMessageLoopThreadId()
-}
-
-// SetShutdownHighestPriority set shutdown highest priority and block system
-// shutdown reason.
-//
-// This function allows current process take precedence to handle session ending
-// notification from Windows, and has a chance to notify child
-// processes quit gracefully.
-func SetShutdownHighestPriority(blockShutdownReason string) {
-	setShutdownHighestPriority(blockShutdownReason)
-}
-
-// EnableAutoKillDescendants enable automatically kill descendants after process
-// terminated.
-func EnableAutoKillDescendants() error {
-	return enableAutoKillDescendants()
-}
-
-// SetWindowCreatedHandler set a handler called when the underlying window created.
-func SetWindowCreatedHandler(handler func(hWnd syscall.Handle)) {
-	setWindowCreatedHandler(handler)
-}
-
-// OnWindowMessage handle window message.
-//
-// The handler can set *handled to true to avoid winquit or other handlers to handling it.
-func OnWindowMessage(handler func(hWnd syscall.Handle, msg uint32, wParam uintptr, lParam uintptr, handled *bool) uintptr) {
-	onWindowMessage(handler)
 }
