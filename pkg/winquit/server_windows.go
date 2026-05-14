@@ -194,7 +194,7 @@ func registerDummyWindow() error {
 // processes quit gracefully.
 func SetShutdownHighestPriority(blockShutdownReason string) {
 	shutdownHighestPriority = true
-	blockShutdownReason = blockShutdownReason
+	shutdownBlockReason = blockShutdownReason
 }
 
 // EnableAutoKillDescendants enable automatically kill descendants after process
